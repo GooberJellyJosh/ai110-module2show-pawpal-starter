@@ -21,6 +21,7 @@ def _to_minutes(hhmm: str) -> int:
 
 def _to_hhmm(minutes: int) -> str:
     """Convert minutes after midnight to "HH:MM"."""
+    minutes %= 24 * 60  # a task ending after midnight displays as early-morning time
     return f"{minutes // 60:02d}:{minutes % 60:02d}"
 
 

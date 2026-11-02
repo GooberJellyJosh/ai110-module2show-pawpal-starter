@@ -1,15 +1,74 @@
 classDiagram
-    %% Replace the placeholders below with your actual classes, attributes, methods, and relationships.
-    %% Keep this file updated so it matches your final implementation.
+    %% PawPal+ final design — matches pawpal_system.py
 
-    class ClassName {
-        +type attribute
-        +method() returnType
+    class Owner {
+        +str name
+        +int available_minutes
+        +list~Pet~ pets
+        +add_pet(pet: Pet) None
+        +get_pet(name: str) Optional~Pet~
+        +get_all_tasks() list~Task~
+        +save_to_json(path) None
+        +load_from_json(path)$ Owner
     }
 
-    class AnotherClass {
-        +type attribute
-        +method() returnType
+    class Pet {
+        <<dataclass>>
+        +str name
+        +str species
+        +int age
+        +list~Task~ tasks
+        +task_count int
+        +add_task(task: Task) None
+        +remove_task(task: Task) None
+        +to_dict() dict
+        +from_dict(data)$ Pet
     }
 
-    ClassName --> AnotherClass : relationship
+    class Task {
+        <<dataclass>>
+        +str description
+        +str time
+        +int duration_minutes
+        +str priority
+        +str frequency
+        +date due_date
+        +bool completed
+        +str pet_name
+        +start_minutes int
+        +end_minutes int
+        +end_time str
+        +mark_complete() None
+        +next_occurrence() Optional~Task~
+        +to_dict() dict
+        +from_dict(data)$ Task
+    }
+
+    class Scheduler {
+        +Owner owner
+        +get_todays_tasks(day) list~Task~
+        +sort_by_time(tasks) list~Task~
+        +sort_by_priority(tasks) list~Task~
+        +filter_tasks(tasks, pet_name, completed) list~Task~
+        +mark_task_complete(task: Task) Optional~Task~
+        +detect_conflicts(tasks) list~str~
+        +find_next_available_slot(duration_minutes, day, earliest, latest) Optional~str~
+        +generate_daily_plan(day) DailyPlan
+    }
+
+    class DailyPlan {
+        <<dataclass>>
+        +list~Task~ scheduled
+        +list~Task~ skipped
+        +list~str~ reasons
+        +int minutes_used
+        +int minutes_available
+    }
+
+    Owner "1" o-- "*" Pet : has
+    Pet "1" *-- "*" Task : owns
+    Task ..> Task : next_occurrence() creates
+    Scheduler --> Owner : reads pets & tasks from
+    Scheduler ..> Task : sorts / filters / completes
+    Scheduler ..> DailyPlan : generate_daily_plan() returns
+    DailyPlan o-- Task : references
