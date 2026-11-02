@@ -75,14 +75,19 @@ Sample test output:
 
 ## 📐 Smarter Scheduling
 
-> Fill in once you've implemented scheduling logic.
+All scheduling logic lives in `Scheduler` in `pawpal_system.py`. Each feature is shown in `main.py`.
 
-| Feature | Method(s) | Notes |
-|---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Feature | Method(s) | How it works |
+|---------|-----------|--------------|
+| **Sorting by time** | `Scheduler.sort_by_time()` | `sorted()` with a `lambda t: (t.due_date, t.time)` key. `Task` normalizes every time to zero-padded `"HH:MM"`, so string order is chronological (`"7:30"` becomes `"07:30"`). The sort is stable, so tasks at the same time keep the order they were added in. |
+| **Priority scheduling** | `Scheduler.sort_by_priority()` | Sorts high → medium → low, then by time within each level. |
+| **Filtering** | `Scheduler.filter_tasks(tasks=None, pet_name=None, completed=None)` | Filters by pet name (case-insensitive), by completion status, or both. `None` means "don't filter on this." |
+| **Today's tasks** | `Scheduler.get_todays_tasks(day=None)` | Every task whose `due_date` is the given day, sorted by time. |
+| **Recurring tasks** | `Task.next_occurrence()`, `Scheduler.mark_task_complete()` | Completing a `daily` or `weekly` task marks it done and adds a fresh copy to the same pet, due `due_date + timedelta(days=1)` or `timedelta(weeks=1)`. `once` tasks just complete. Completing an already-completed task does nothing, so a double click can't create duplicates. |
+| **Conflict detection** | `Scheduler.detect_conflicts(tasks=None)` | Sorts pending tasks by start time, then checks each one against the tasks that start before it ends (`start < other.end`), on the same day. It catches exact time matches *and* partial overlaps, for the same pet or across pets. It returns readable warning strings and never raises. Completed tasks are ignored. |
+| **Daily plan within a time budget** | `Scheduler.generate_daily_plan(day=None)` | Greedy: takes pending tasks in priority order and keeps each one that still fits in `Owner.available_minutes`. Returns a `DailyPlan` with the chosen tasks (in time order), the skipped tasks, and a one-line reason for every decision. |
+| **Next available slot** | `Scheduler.find_next_available_slot(duration, day=None, earliest="07:00", latest="22:00")` | Walks the gaps between the day's pending tasks and returns the first start time where a task of that length fits, or `None` if the day is full. |
+| **Persistence** | `Owner.save_to_json()`, `Owner.load_from_json()` | Custom `to_dict()` / `from_dict()` on `Task` and `Pet` (dates stored as ISO strings). The Streamlit app loads `data.json` on startup and saves after every change. |
 
 ## 📸 Demo Walkthrough
 
