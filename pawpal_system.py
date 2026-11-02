@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import date
 
 
 @dataclass
@@ -12,9 +13,14 @@ class Task:
     duration_minutes: int = 15
     priority: str = "medium"  # "low" | "medium" | "high"
     frequency: str = "once"  # "once" | "daily" | "weekly"
+    due_date: date = field(default_factory=date.today)
     completed: bool = False
+    pet_name: str = ""  # filled in by Pet.add_task
 
     def mark_complete(self) -> None:
+        pass
+
+    def next_occurrence(self) -> Task | None:
         pass
 
 
@@ -51,13 +57,16 @@ class Scheduler:
     def __init__(self, owner: Owner) -> None:
         self.owner = owner
 
-    def get_todays_tasks(self) -> list[Task]:
+    def get_todays_tasks(self, day: date | None = None) -> list[Task]:
         pass
 
     def sort_by_time(self, tasks: list[Task]) -> list[Task]:
         pass
 
     def filter_tasks(self, pet_name: str | None = None, completed: bool | None = None) -> list[Task]:
+        pass
+
+    def mark_task_complete(self, task: Task) -> Task | None:
         pass
 
     def detect_conflicts(self, tasks: list[Task]) -> list[str]:
